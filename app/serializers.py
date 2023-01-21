@@ -4,6 +4,7 @@ from . import models
 
 from django.utils import timezone
 
+
 class CreateUserSerializer(serializers.ModelSerializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True,
@@ -24,21 +25,31 @@ class CreateUserSerializer(serializers.ModelSerializer):
         return user
 
 
+class FeedBackSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.FeedBack
+        fields = ['id', 'star', 'message']
+
+
+class PackageSerializer(serializers.ModelSerializer):
+
+    feedback = FeedBackSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = models.Package
+        fields = ['id', 'destination', 'image',
+                  'cost', 'duration', 'description', 'feedback']
+
 
 class PackageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Package  
-        fields = ['id','destination','image','cost','duration','description']
+        model = models.IncludePlace
+        fields = ['id', 'placename', 'hotels', 'lengthofstay', 'image']
 
 
-
-class PackageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.IncludePlace  
-        fields = ['id','placename','hotels','lengthofstay','image']
-
-        
 class BookingSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Booking 
-        fields = ['id','travelcode','package','traveler','travel_sdate','cost','paid','is_halfpaid','is_fullpaid','is_finish','is_call','booking_date']
+        model = models.Booking
+        fields = ['id', 'travelcode', 'package', 'traveler', 'travel_sdate', 'cost',
+                  'paid', 'is_halfpaid', 'is_fullpaid', 'is_finish', 'is_call', 'booking_date']
