@@ -42,7 +42,7 @@ class PackageSerializer(serializers.ModelSerializer):
                   'cost', 'duration', 'description', 'feedback']
 
 
-class PackageSerializer(serializers.ModelSerializer):
+class IncludePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.IncludePlace
         fields = ['id', 'placename', 'hotels', 'lengthofstay', 'image']

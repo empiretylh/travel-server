@@ -17,11 +17,11 @@ urlpatterns = [
     path('auth/register/', apiview.CreateUserApiView.as_view(),
          name='auth_user_create'), 
 
-    path('api/packageadmin/',apiview.PackageAdmin,name='packageadmin'),
-     path('api/packagedescription/',apiview.PackageDescriptionAdmin,name='description'),
-      path('api/includeplaces/',apiview.IncludePlace,name='includeplace'),
-       path('api/adminbooking/',apiview.AdminBookingView,name='adminbooking'),
-        path('api/clientbooking/',apiview.ClientBooking,name='clientbooking')
+    path('api/packageadmin/',apiview.PackageAdmin.as_view(),name='packageadmin'),
+     path('api/packagedescription/',apiview.PackageDescriptionAdmin.as_view(),name='description'),
+      path('api/includeplaces/',apiview.IncludePlace.as_view(),name='includeplace'),
+       path('api/adminbooking/',apiview.AdminBookingView.as_view(),name='adminbooking'),
+        path('api/clientbooking/',apiview.ClientBooking.as_view(),name='clientbooking')
 
   
 

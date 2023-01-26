@@ -57,7 +57,7 @@ class PackageAdmin(APIView):
 
     # destination(str),image(file),cost(str),duration(str)
 
-    permission_classes = [AllowAny]
+    permission_classes=[AllowAny]
 
     def post(self, request):
         user = models.User.objects.get(username=request.user)
@@ -75,7 +75,7 @@ class PackageAdmin(APIView):
         return Response(status=status.HTTP_201_CREATED)
 
     # return all data
-    def get(self, request):
+    def get(self, request,format=None):
         user = models.User.objects.get(username=request.user)
         package = models.Package.objects.all()
         ser = serializers.PackageSerializer(package, many=True)
@@ -83,6 +83,7 @@ class PackageAdmin(APIView):
         return Response(ser.data)
 
     def put(self, request):
+        # print(request.data)
         user = models.User.objects.get(username=request.user)
         packageid = request.data['packageid']
         destination = request.data['destination']
@@ -92,7 +93,10 @@ class PackageAdmin(APIView):
 
         package = models.Package.objects.get(id=packageid, user=user)
         package.destination = destination
-        package.image = image
+
+        print(image)
+        if image:
+            package.image = image
         package.cost = cost
         package.duration = duration
         package.save()
@@ -101,7 +105,7 @@ class PackageAdmin(APIView):
 
     def delete(self, request):
         user = models.User.objects.get(username=request.user)
-        packageid = request.data['packageid']
+        packageid = request.GET.get('packageid')
 
         package = models.Package.objects.get(id=packageid, user=user)
         package.delete()
@@ -111,7 +115,7 @@ class PackageAdmin(APIView):
 
 class PackageDescriptionAdmin(APIView):
     def put(self, request):
-        user = get_user_model.objects.get(username=request.user)
+        user = models.User.objects.get(username=request.user)
         packageid = request.data['packageid']
         description = request.data['description']
         package = models.Package.objects.get(user=user, id=packageid)
@@ -124,7 +128,7 @@ class PackageDescriptionAdmin(APIView):
 class IncludePlace(APIView):
 
     def get(self, request):
-        user = get_user_model.objects.get(username=request.user)
+        user = models.User.objects.get(username=request.user)
         packageid = request.data['packageid']
 
         ip = models.IncludePlace.objects.filter(id=packageid)
@@ -134,7 +138,7 @@ class IncludePlace(APIView):
         return Response(sr.data)
 
     def post(self, request):
-        user = get_user_model.objects.get(username=request.user)
+        user = models.User.objects.get(username=request.user)
         packageid = request.data['packageid']
         placename = request.data['placename']
         hotels = request.data['hotels']
@@ -147,7 +151,7 @@ class IncludePlace(APIView):
         return Response(status=status.HTTP_201_CREATED)
 
     def put(self, request, format=None):
-        user = get_user_model.objects.get(usernmae=request.user)
+        user = models.User.objects.get(username=request.user)
         ipid = request.data['includeplaceid']
         packageid = request.data['packageid']
         placename = request.data['placename']
