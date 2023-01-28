@@ -44,7 +44,8 @@ class Traveler(models.Model):
     email = models.CharField(max_length=255, null=True)
     idcardno = models.CharField(
         max_length=22, null=True)  # 14/MaMaNa(N)/xxxxxx
-
+    address = models.TextField(blank=True);
+    
     def __str__(self):
         return self.name
 
@@ -62,7 +63,7 @@ class Booking(models.Model):
     is_halfpaid = models.BooleanField(default=False)
     is_fullpaid = models.BooleanField(default=False)
     is_finish = models.BooleanField(default=True)
-    booking_date = models.DateTimeField()
+    booking_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.travelcode + ' ' + self.traveler.name

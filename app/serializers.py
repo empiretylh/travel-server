@@ -32,14 +32,6 @@ class FeedBackSerializer(serializers.ModelSerializer):
         fields = ['id', 'star', 'message']
 
 
-class PackageSerializer(serializers.ModelSerializer):
-
-    feedback = FeedBackSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = models.Package
-        fields = ['id', 'destination', 'image',
-                  'cost', 'duration', 'description', 'feedback']
 
 
 class IncludePlaceSerializer(serializers.ModelSerializer):
@@ -48,8 +40,35 @@ class IncludePlaceSerializer(serializers.ModelSerializer):
         fields = ['id', 'placename', 'hotels', 'lengthofstay', 'image']
 
 
+class PackageSerializer(serializers.ModelSerializer):
+
+    feedback = FeedBackSerializer(many=True, read_only=True)
+    includeplace = IncludePlaceSerializer(many=True,read_only=True)
+
+    class Meta:
+        model = models.Package
+        fields = ['id', 'destination', 'image',
+                  'cost', 'duration', 'description', 'feedback','includeplace']
+
+
+class IncludePlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.IncludePlace
+        fields = ['id', 'placename', 'hotels', 'lengthofstay', 'image']
+
+
+class TravelerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Traveler
+        fields = ['id','name','phoneno','email','idcardno']
+
+
 class BookingSerializer(serializers.ModelSerializer):
+    
+    traveler = serializers.CharField(source='traveler.name')
+    package = serializers.CharField(source='package.destination')
+
     class Meta:
         model = models.Booking
-        fields = ['id', 'travelcode', 'package', 'traveler', 'travel_sdate', 'cost',
-                  'paid', 'is_halfpaid', 'is_fullpaid', 'is_finish', 'is_call', 'booking_date']
+        fields = ['id', 'travelcode','travel_sdate', 'cost',
+                  'paid', 'is_halfpaid', 'is_fullpaid', 'is_finish', 'booking_date','traveler','package']

@@ -131,22 +131,28 @@ class IncludePlace(APIView):
         user = models.User.objects.get(username=request.user)
         packageid = request.data['packageid']
 
-        ip = models.IncludePlace.objects.filter(id=packageid)
+        ip = models.IncludePlace.objects.filter(package_id=packageid)
 
         sr = serializers.IncludePlace(ip, many=True)
 
         return Response(sr.data)
 
     def post(self, request):
+        print(request.data)
         user = models.User.objects.get(username=request.user)
         packageid = request.data['packageid']
         placename = request.data['placename']
-        hotels = request.data['hotels']
+        hotels = request.data['hotel']
         lengthofstay = request.data['lengthofstay']
         image = request.data['image']
 
         ip = models.IncludePlace.objects.create(
-            user=user, package__id=packageid, placename=placename, hotels=hotels, lengthofstay=lengthofstay, image=image)
+            user=user, package_id=packageid, placename=placename, hotels=hotels, lengthofstay=lengthofstay)
+
+        if image:
+            ip.image = image
+
+        ip.save()
 
         return Response(status=status.HTTP_201_CREATED)
 
@@ -171,8 +177,8 @@ class IncludePlace(APIView):
         return Response(status=status.HTTP_201_CREATED)
 
     def delete(self, request, format=None):
-        user = get_user_model.objects.get(username=request.user)
-        ipid = request.data['includeplaceid']
+        user = models.User.objects.get(username=request.user)
+        ipid = request.GET.get('includeplaceid')
 
         ip = models.IncludePlace.objects.get(id=ipid, user=user)
 
@@ -190,8 +196,10 @@ class AdminBookingView(APIView):
         type = request.GET.get('type')
         if type == 'finish':
             booking = models.Booking.objects.filter(is_finish=True)
-        else:
+        elif type == 'unfinish':
             booking = models.Booking.objects.filter(is_finish=False)
+        else:
+            booking = models.Booking.objects.all()
         ser = serializers.BookingSerializer(booking, many=True)
 
         return Response(ser.data)
@@ -262,7 +270,7 @@ class ClientBooking(APIView):
     # check Booking from here
     def get(self, request):
 
-        travelcode = request.data['travelcode']
+        travelcode = request.GET.get('travelcode')
         booking = models.Booking.objects.get(travelcode=travelcode)
 
         ser = serializers.BookingSerializer(booking, many=True)
