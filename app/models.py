@@ -1,5 +1,4 @@
 from email.policy import default
-from socketserver import ThreadingUnixDatagramServer
 from unittest.util import _MAX_LENGTH
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group
@@ -24,6 +23,8 @@ class Package(models.Model):
     cost = models.CharField(max_length=10, null=False)
     duration = models.CharField(max_length=255, null=True)
     description = models.TextField(null=True)
+    people_limit = models.IntegerField(default=10)
+    travel_sdate = models.DateTimeField()
 
     def __str__(self):
         return self.destination
@@ -56,8 +57,6 @@ class Booking(models.Model):
         Package, on_delete=models.CASCADE, related_name='mbooking')
     traveler = models.ForeignKey(
         Traveler, on_delete=models.CASCADE, related_name='booking')
-    travel_sdate = models.DateTimeField()
-    travel_rdate = models.DateTimeField()
     cost = models.CharField(max_length=10, null=False)
     paid = models.CharField(max_length=10, null=False)
     is_halfpaid = models.BooleanField(default=False)
@@ -67,6 +66,8 @@ class Booking(models.Model):
 
     def __str__(self):
         return self.travelcode + ' ' + self.traveler.name
+
+
 
 
 class IncludePlace(models.Model):

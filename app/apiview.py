@@ -57,7 +57,7 @@ class PackageAdmin(APIView):
 
     # destination(str),image(file),cost(str),duration(str)
 
-    permission_classes=[AllowAny]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         user = models.User.objects.get(username=request.user)
@@ -65,17 +65,16 @@ class PackageAdmin(APIView):
         image = request.data['image']
         cost = request.data['cost']
         duration = request.data['duration']
+        people_limit = request.data['people_limit']
+        travel_sdate = request.data['travel_sdate']
 
         package = models.Package.objects.create(
-            user=user, destination=destination, image=image, cost=cost, duration=duration)
-
-        includePlace = models.IncludePlace.objects.create(
-            user=user, placename=destination, package=package)
+            user=user, destination=destination, image=image, cost=cost, duration=duration, people_limit=people_limit, travel_sdate=travel_sdate)
 
         return Response(status=status.HTTP_201_CREATED)
 
     # return all data
-    def get(self, request,format=None):
+    def get(self, request, format=None):
         user = models.User.objects.get(username=request.user)
         package = models.Package.objects.all()
         ser = serializers.PackageSerializer(package, many=True)
@@ -83,14 +82,15 @@ class PackageAdmin(APIView):
         return Response(ser.data)
 
     def put(self, request):
-        # print(request.data)
+        print(request.data)
         user = models.User.objects.get(username=request.user)
         packageid = request.data['packageid']
         destination = request.data['destination']
         image = request.data['image']
         cost = request.data['cost']
         duration = request.data['duration']
-
+        people_limit = request.data['people_limit']
+        travel_sdate = request.data['travel_sdate']
         package = models.Package.objects.get(id=packageid, user=user)
         package.destination = destination
 
@@ -99,6 +99,8 @@ class PackageAdmin(APIView):
             package.image = image
         package.cost = cost
         package.duration = duration
+        package.people_limit=people_limit
+        package.travel_sdate = travel_sdate
         package.save()
 
         return Response(status=status.HTTP_201_CREATED)
@@ -182,14 +184,13 @@ class IncludePlace(APIView):
 
         ip = models.IncludePlace.objects.get(id=ipid, user=user)
 
-        ip.delete()
+        ip.delete() 
 
         return Response(status=status.HTTP_201_CREATED)
 
 
 class AdminBookingView(APIView):
 
-    permission_classes = [AllowAny]
 
     def get(self, request):
 
@@ -205,17 +206,46 @@ class AdminBookingView(APIView):
         return Response(ser.data)
 
     def put(self, request):
-        travelcode = request.data['travelcode']
-        paid = request.data['paid']
+        bookingid =  request.data['bookingid']
+       
 
-        booking = models.Booking.objects.get(travelcode=travelcode)
-        is_halfpaid = booking.cost / 2 <= paid
-        is_fullpaid = booking.cost <= paid
-        booking.is_halfpaid = is_halfpaid
-        booking.is_fullpaid = is_fullpaid
+        booking = models.Booking.objects.get(id=bookingid)
+        print(request.data)
+        if "prepaid" in request.data:
+            prepaid = request.data['prepaid']
+            booking.is_halfpaid = prepaid
+            if prepaid:
+                booking.paid = int( float(booking.cost) / 2 )
+            else:
+                booking.paid = int(float(booking.paid) - (float(booking.cost) / 2))
+           
+        
+        if "fullpaid" in request.data:
+            fullpaid = request.data['fullpaid']
+            booking.is_fullpaid = fullpaid
+            if fullpaid:
+                booking.paid =  booking.cost
+            else:
+                booking.paid = int(float(booking.paid) - (float(booking.cost) / 2))
+
+        if "is_finish" in request.data:
+            is_finish = request.data['is_finish']
+            booking.is_finish = is_finish
+
+        
         booking.save()
 
         return Response(status=status.HTTP_201_CREATED)
+
+
+class TravelerView(APIView):
+    
+    def get(self,request):
+        travelerid =  request.GET.get('travelerid')
+        Traveler = models.Traveler.objects.get(id=travelerid)
+        ser = serializers.TravelerSerializer(Traveler)
+
+        return Response(ser.data)
 
 
 class ClientBooking(APIView):
@@ -274,5 +304,39 @@ class ClientBooking(APIView):
         booking = models.Booking.objects.get(travelcode=travelcode)
 
         ser = serializers.BookingSerializer(booking, many=True)
+
+        return Response(ser.data)
+
+
+class FeedBackView(APIView):
+
+    permission_classes = [AllowAny]
+
+    def post(self,request):
+        
+        star = request.data['star']
+        packageid = request.data['packageid']
+        
+        feedback = models.FeedBack.objects.create(star=star,package_id=packageid)
+
+        if 'message' in request.data:
+            message = request.data['message']
+            feedback.message = message 
+            feedback.save() 
+
+        return Response(status=status.HTTP_201_CREATED)
+
+
+    def get(self,request):
+
+        type = request.GET.get('type')
+        
+        if type === 'one':
+            packageid = request.data['packageid']
+            feedback = models.FeedBack.objects.filter(package_id=packageid)
+        else:
+            feedback = models.FeedBack.objects.all()
+        
+        ser = serializers.FeedBackSerializer(feedback)
 
         return Response(ser.data)

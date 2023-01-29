@@ -42,13 +42,12 @@ class IncludePlaceSerializer(serializers.ModelSerializer):
 
 class PackageSerializer(serializers.ModelSerializer):
 
-    feedback = FeedBackSerializer(many=True, read_only=True)
     includeplace = IncludePlaceSerializer(many=True,read_only=True)
 
     class Meta:
         model = models.Package
         fields = ['id', 'destination', 'image',
-                  'cost', 'duration', 'description', 'feedback','includeplace']
+                  'cost', 'duration', 'description','people_limit','travel_sdate','includeplace']
 
 
 class IncludePlaceSerializer(serializers.ModelSerializer):
@@ -60,15 +59,16 @@ class IncludePlaceSerializer(serializers.ModelSerializer):
 class TravelerSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Traveler
-        fields = ['id','name','phoneno','email','idcardno']
+        fields = ['id','name','phoneno','email','idcardno','address']
 
 
 class BookingSerializer(serializers.ModelSerializer):
     
     traveler = serializers.CharField(source='traveler.name')
+    travelerid = serializers.CharField(source='traveler.id')
     package = serializers.CharField(source='package.destination')
-
+   
     class Meta:
         model = models.Booking
-        fields = ['id', 'travelcode','travel_sdate', 'cost',
-                  'paid', 'is_halfpaid', 'is_fullpaid', 'is_finish', 'booking_date','traveler','package']
+        fields = ['id', 'travelcode','cost',
+                  'paid', 'is_halfpaid', 'is_fullpaid', 'is_finish', 'booking_date','traveler','package','travelerid']

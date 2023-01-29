@@ -21,6 +21,7 @@ urlpatterns = [
      path('api/packagedescription/',apiview.PackageDescriptionAdmin.as_view(),name='description'),
       path('api/includeplaces/',apiview.IncludePlace.as_view(),name='includeplace'),
        path('api/adminbooking/',apiview.AdminBookingView.as_view(),name='adminbooking'),
+       path('api/traveler/',apiview.TravelerView.as_view(),name='traveler'),
         path('api/clientbooking/',apiview.ClientBooking.as_view(),name='clientbooking')
 
   
