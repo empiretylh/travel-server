@@ -32,11 +32,11 @@ class Package(models.Model):
 
 class FeedBack(models.Model):
     star = models.IntegerField()
-    message = models.CharField(max_length=255)
+    message = models.TextField(null=True,blank=True)
     package = models.ForeignKey(Package, on_delete=models.CASCADE,related_name='feedback')
 
     def __str__(self):
-        return self.star + '   ' + self.message
+        return str(self.star) + '   ' + self.message
 
 
 class Traveler(models.Model):
@@ -69,6 +69,18 @@ class Booking(models.Model):
 
 
 
+class CompanyInformation(models.Model):
+    companyname = models.CharField(max_length=255)
+    phoneno = models.CharField(max_length=255)
+    email = models.CharField(max_length=255)
+    image = models.ImageField(
+        upload_to='img/companyimage/%y%mm/%dd', null=True)
+    companyaddress = models.TextField()
+
+
+    def __str__(self) -> str:
+        return self.companyname
+
 
 class IncludePlace(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -82,3 +94,4 @@ class IncludePlace(models.Model):
 
     def __str__(self):
         return self.placename
+

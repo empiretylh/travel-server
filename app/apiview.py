@@ -331,12 +331,22 @@ class FeedBackView(APIView):
 
         type = request.GET.get('type')
         
-        if type === 'one':
+        if type == 'one':
             packageid = request.data['packageid']
             feedback = models.FeedBack.objects.filter(package_id=packageid)
         else:
             feedback = models.FeedBack.objects.all()
         
-        ser = serializers.FeedBackSerializer(feedback)
+        ser = serializers.FeedBackSerializer(feedback,many=True)
 
         return Response(ser.data)
+
+    def delete(self,request):
+        
+        feedbackid = request.GET.get('feedbackid')
+
+        feedback = models.FeedBack.objects.get(id=feedbackid)
+
+        feedback.delete()
+
+        return Response(status=status.HTTP_201_CREATED)

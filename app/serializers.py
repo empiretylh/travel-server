@@ -27,9 +27,11 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
 class FeedBackSerializer(serializers.ModelSerializer):
 
+    package = serializers.CharField(source='package.destination')
+
     class Meta:
         model = models.FeedBack
-        fields = ['id', 'star', 'message']
+        fields = ['id', 'star', 'message','package']
 
 
 
@@ -72,3 +74,5 @@ class BookingSerializer(serializers.ModelSerializer):
         model = models.Booking
         fields = ['id', 'travelcode','cost',
                   'paid', 'is_halfpaid', 'is_fullpaid', 'is_finish', 'booking_date','traveler','package','travelerid']
+
+
