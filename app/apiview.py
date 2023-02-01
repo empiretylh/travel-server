@@ -99,7 +99,7 @@ class PackageAdmin(APIView):
             package.image = image
         package.cost = cost
         package.duration = duration
-        package.people_limit=people_limit
+        package.people_limit = people_limit
         package.travel_sdate = travel_sdate
         package.save()
 
@@ -184,13 +184,12 @@ class IncludePlace(APIView):
 
         ip = models.IncludePlace.objects.get(id=ipid, user=user)
 
-        ip.delete() 
+        ip.delete()
 
         return Response(status=status.HTTP_201_CREATED)
 
 
 class AdminBookingView(APIView):
-
 
     def get(self, request):
 
@@ -206,8 +205,7 @@ class AdminBookingView(APIView):
         return Response(ser.data)
 
     def put(self, request):
-        bookingid =  request.data['bookingid']
-       
+        bookingid = request.data['bookingid']
 
         booking = models.Booking.objects.get(id=bookingid)
         print(request.data)
@@ -215,33 +213,33 @@ class AdminBookingView(APIView):
             prepaid = request.data['prepaid']
             booking.is_halfpaid = prepaid
             if prepaid:
-                booking.paid = int( float(booking.cost) / 2 )
+                booking.paid = int(float(booking.cost) / 2)
             else:
-                booking.paid = int(float(booking.paid) - (float(booking.cost) / 2))
-           
-        
+                booking.paid = int(float(booking.paid) -
+                                   (float(booking.cost) / 2))
+
         if "fullpaid" in request.data:
             fullpaid = request.data['fullpaid']
             booking.is_fullpaid = fullpaid
             if fullpaid:
-                booking.paid =  booking.cost
+                booking.paid = booking.cost
             else:
-                booking.paid = int(float(booking.paid) - (float(booking.cost) / 2))
+                booking.paid = int(float(booking.paid) -
+                                   (float(booking.cost) / 2))
 
         if "is_finish" in request.data:
             is_finish = request.data['is_finish']
             booking.is_finish = is_finish
 
-        
         booking.save()
 
         return Response(status=status.HTTP_201_CREATED)
 
 
 class TravelerView(APIView):
-    
-    def get(self,request):
-        travelerid =  request.GET.get('travelerid')
+
+    def get(self, request):
+        travelerid = request.GET.get('travelerid')
         Traveler = models.Traveler.objects.get(id=travelerid)
         ser = serializers.TravelerSerializer(Traveler)
 
@@ -312,41 +310,80 @@ class FeedBackView(APIView):
 
     permission_classes = [AllowAny]
 
-    def post(self,request):
-        
+    def post(self, request):
+
         star = request.data['star']
         packageid = request.data['packageid']
-        
-        feedback = models.FeedBack.objects.create(star=star,package_id=packageid)
+
+        feedback = models.FeedBack.objects.create(
+            star=star, package_id=packageid)
 
         if 'message' in request.data:
             message = request.data['message']
-            feedback.message = message 
-            feedback.save() 
+            feedback.message = message
+            feedback.save()
 
         return Response(status=status.HTTP_201_CREATED)
 
-
-    def get(self,request):
+    def get(self, request):
 
         type = request.GET.get('type')
-        
+
         if type == 'one':
             packageid = request.data['packageid']
             feedback = models.FeedBack.objects.filter(package_id=packageid)
         else:
             feedback = models.FeedBack.objects.all()
-        
-        ser = serializers.FeedBackSerializer(feedback,many=True)
+
+        ser = serializers.FeedBackSerializer(feedback, many=True)
 
         return Response(ser.data)
 
-    def delete(self,request):
-        
+    def delete(self, request):
+
         feedbackid = request.GET.get('feedbackid')
 
         feedback = models.FeedBack.objects.get(id=feedbackid)
 
         feedback.delete()
+
+        return Response(status=status.HTTP_201_CREATED)
+
+
+class CompanyInfoView(APIView):
+
+    def get(self,request):
+        CI = models.CompanyInformation.objects.last()
+        SCI = serializers.CompanyInfoSerializer(CI)
+
+        return Response(SCI.data)
+
+    def post(self, request):
+        companyname = request.data['companyname']
+        phoneno = request.data['phoneno']
+        email = request.data['email']
+        address = request.data['address']
+
+        try:
+            CI = models.CompanyInformation.objects.last()
+            CI.companyname = companyname
+            CI.phoneno = phoneno
+            CI.email = email
+            CI.companyaddress = address
+
+        except ObjectDoesNotExist:
+            CI = models.CompanyInformation.objects.create(
+                companyname=companyname, 
+                phoneno=phoneno,
+                 email=email, 
+                 companyaddress=address)
+        
+
+        image = request.data['image']
+
+        if image:
+            CI.image = image 
+        
+        CI.save()
 
         return Response(status=status.HTTP_201_CREATED)

@@ -76,3 +76,7 @@ class BookingSerializer(serializers.ModelSerializer):
                   'paid', 'is_halfpaid', 'is_fullpaid', 'is_finish', 'booking_date','traveler','package','travelerid']
 
 
+class CompanyInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =  models.CompanyInformation 
+        fields = ['id','companyname','phoneno','email','companyaddress','image']
