@@ -75,7 +75,7 @@ class PackageAdmin(APIView):
 
     # return all data
     def get(self, request, format=None):
-        user = models.User.objects.get(username=request.user)
+    
         package = models.Package.objects.all()
         ser = serializers.PackageSerializer(package, many=True)
 
@@ -125,7 +125,7 @@ class PackageDescriptionAdmin(APIView):
 
         package.save()
         return Response(status=status.HTTP_201_CREATED)
-
+    
 
 class IncludePlace(APIView):
 
@@ -387,3 +387,12 @@ class CompanyInfoView(APIView):
         CI.save()
 
         return Response(status=status.HTTP_201_CREATED)
+
+class PackageView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self,request,format=None):
+        package = models.Package.objects.all()
+        ser = serializers.PackageSerializer(package, many=True)
+
+        return Response(ser.data)
