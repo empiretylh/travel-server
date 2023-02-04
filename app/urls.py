@@ -25,9 +25,9 @@ urlpatterns = [
     path('api/traveler/', apiview.TravelerView.as_view(), name='traveler'),
     path('api/clientbooking/', apiview.ClientBooking.as_view(), name='clientbooking'),
     path('api/feedbacks/', apiview.FeedBackView.as_view(), name='feedback'),
-     path('api/companyinfo/',apiview.CompanyInfoView.as_view(),name='companyinfo')
+     path('api/companyinfo/',apiview.CompanyInfoView.as_view(),name='companyinfo'),
 
-
+     path('api/packages/',apiview.PackageView.as_view(),name='package'),
 
 ]
 
