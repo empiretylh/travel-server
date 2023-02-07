@@ -27,7 +27,7 @@ urlpatterns = [
     path('api/feedbacks/', apiview.FeedBackView.as_view(), name='feedback'),
      path('api/companyinfo/',apiview.CompanyInfoView.as_view(),name='companyinfo'),
 
-     path('api/packages/',apiview.PackageView.as_view(),name='package'),
+     path('api/package/',apiview.PackageView.as_view(),name='package'),
 
 ]
 

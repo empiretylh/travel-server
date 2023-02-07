@@ -311,7 +311,7 @@ class FeedBackView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-
+        
         star = request.data['star']
         packageid = request.data['packageid']
 
@@ -340,7 +340,7 @@ class FeedBackView(APIView):
         return Response(ser.data)
 
     def delete(self, request):
-
+        user = models.User.objects.get(username=request.user)
         feedbackid = request.GET.get('feedbackid')
 
         feedback = models.FeedBack.objects.get(id=feedbackid)
@@ -352,6 +352,8 @@ class FeedBackView(APIView):
 
 class CompanyInfoView(APIView):
 
+    permission_classes = [AllowAny]
+
     def get(self,request):
         CI = models.CompanyInformation.objects.last()
         SCI = serializers.CompanyInfoSerializer(CI)
@@ -359,6 +361,7 @@ class CompanyInfoView(APIView):
         return Response(SCI.data)
 
     def post(self, request):
+        user = models.User.objects.get(username=request.user)
         companyname = request.data['companyname']
         phoneno = request.data['phoneno']
         email = request.data['email']
@@ -392,7 +395,10 @@ class PackageView(APIView):
     permission_classes = [AllowAny]
 
     def get(self,request,format=None):
-        package = models.Package.objects.all()
-        ser = serializers.PackageSerializer(package, many=True)
+
+        pkid =  request.GET.get('pkid')
+
+        package = models.Package.objects.get(id=pkid)
+        ser = serializers.PackageSerializer(package)
 
         return Response(ser.data)
