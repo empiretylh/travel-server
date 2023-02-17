@@ -67,13 +67,15 @@ class TravelerSerializer(serializers.ModelSerializer):
 class BookingSerializer(serializers.ModelSerializer):
     
     traveler = serializers.CharField(source='traveler.name')
+    idcardno = serializers.CharField(source='traveler.idcardno')
     travelerid = serializers.CharField(source='traveler.id')
     package = serializers.CharField(source='package.destination')
+    departuredt = serializers.CharField(source='package.travel_sdate')
    
     class Meta:
         model = models.Booking
-        fields = ['id', 'travelcode','cost',
-                  'paid', 'is_halfpaid', 'is_fullpaid', 'is_finish', 'booking_date','traveler','package','travelerid']
+        fields = ['id', 'travelcode','cost','departuredt',
+                  'paid', 'is_halfpaid', 'is_fullpaid', 'is_finish', 'booking_date','traveler','package','travelerid','idcardno']
 
 
 class CompanyInfoSerializer(serializers.ModelSerializer):
