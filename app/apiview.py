@@ -254,8 +254,6 @@ class TravelerView(APIView):
 
 class ClientBooking(APIView):
 
-    permission_classes = [AllowAny]
-
     def post(self, request):
         print(request.data)
         name = request.data['name']

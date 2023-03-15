@@ -12,7 +12,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ['name', 'username', 'email', 'phoneno', 'password']
+        fields = ['name', 'username', 'email', 'phoneno', 'password','is_admin']
         write_only_fields = ('password')
 
     def create(self, validated_data):
@@ -24,6 +24,10 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
         return user
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ['id','name','username','email','phoneno','is_admin']
 
 class FeedBackSerializer(serializers.ModelSerializer):
 

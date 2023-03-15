@@ -14,7 +14,7 @@ class User(AbstractUser):
     profileimage = models.ImageField(
         upload_to="img/profile/%y/%mm/%dd", null=True)
     email = models.CharField(max_length=255, null=True)
-
+    is_admin = models.BooleanField(default=False)
 
 class Package(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -63,7 +63,8 @@ class Booking(models.Model):
     is_fullpaid = models.BooleanField(default=False)
     is_finish = models.BooleanField(default=True)
     booking_date = models.DateTimeField(auto_now_add=True)
-
+    user =models.ForeignKey(User, on_delete=models.CASCADE)
+    
     def __str__(self):
         return self.travelcode + ' ' + self.traveler.name
 
@@ -95,3 +96,12 @@ class IncludePlace(models.Model):
     def __str__(self):
         return self.placename
 
+class PaymentInformation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    SenderName = models.CharField(max_length=255)
+    SenderPhoneno = models.CharField(max_length=11)
+    ReceiverName = models.CharField(max_length=255)
+    ReceiverPhoneno = models.CharField(max_length=11)
+
+    def __str__(self):
+        return self.SenderName
