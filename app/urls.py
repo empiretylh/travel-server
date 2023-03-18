@@ -13,7 +13,7 @@ urlpatterns = [
 
 
 
-    path('auth/login/', obtain_auth_token, name='auth_user_login'),
+    path('auth/login/', apiview.LoginView.as_view(), name='auth_user_login'),
     path('auth/register/', apiview.CreateUserApiView.as_view(),
          name='auth_user_create'),
 
@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/companyinfo/', apiview.CompanyInfoView.as_view(), name='companyinfo'),
     path('api/checkcode/', apiview.CheckCode.as_view(), name='checkcode'),
     path('api/package/', apiview.PackageView.as_view(), name='package'),
+    path('api/user/',apiview.UserApiView.as_view(),name='user'),
 
 ]
 

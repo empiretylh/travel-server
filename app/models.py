@@ -14,7 +14,7 @@ class User(AbstractUser):
     profileimage = models.ImageField(
         upload_to="img/profile/%y/%mm/%dd", null=True)
     email = models.CharField(max_length=255, null=True)
-    is_admin = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=True)
 
 class Package(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -25,6 +25,7 @@ class Package(models.Model):
     description = models.TextField(null=True)
     people_limit = models.IntegerField(default=10)
     travel_sdate = models.DateTimeField()
+    discount = models.TextField(null=True)
 
     def __str__(self):
         return self.destination
@@ -51,20 +52,33 @@ class Traveler(models.Model):
         return self.name
 
 
+
+class PaymentInfo(models.Model):
+    ReceiverName = models.CharField(max_length=255,null=False)
+    ReceiverPhoneno =  models.CharField(max_length=25,null=False)
+    SenderName = models.CharField(max_length=255,null=False)
+    SenderPhoneno = models.CharField(max_length=255)
+    Amount = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.ReceiverName + ' '+ self.Amount
+
+
 class Booking(models.Model):
     travelcode = models.CharField(max_length=10)
     package = models.ForeignKey(
         Package, on_delete=models.CASCADE, related_name='mbooking')
     traveler = models.ForeignKey(
         Traveler, on_delete=models.CASCADE, related_name='booking')
+    paymentinfo =  models.ForeignKey(PaymentInfo,on_delete=models.CASCADE,related_name='paymentinfo',default=None)
     cost = models.CharField(max_length=10, null=False)
     paid = models.CharField(max_length=10, null=False)
     is_halfpaid = models.BooleanField(default=False)
     is_fullpaid = models.BooleanField(default=False)
     is_finish = models.BooleanField(default=True)
     booking_date = models.DateTimeField(auto_now_add=True)
-    user =models.ForeignKey(User, on_delete=models.CASCADE)
-    
+    user = models.ForeignKey(User,on_delete=models.CASCADE,default=None)
+
     def __str__(self):
         return self.travelcode + ' ' + self.traveler.name
 
@@ -96,12 +110,5 @@ class IncludePlace(models.Model):
     def __str__(self):
         return self.placename
 
-class PaymentInformation(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    SenderName = models.CharField(max_length=255)
-    SenderPhoneno = models.CharField(max_length=11)
-    ReceiverName = models.CharField(max_length=255)
-    ReceiverPhoneno = models.CharField(max_length=11)
 
-    def __str__(self):
-        return self.SenderName
+

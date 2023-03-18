@@ -24,10 +24,13 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
         return user
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ['id','name','username','email','phoneno','is_admin']
+        fields = ['name','username','email','phoneno','password','is_admin']
+
+        
 
 class FeedBackSerializer(serializers.ModelSerializer):
 
@@ -53,7 +56,7 @@ class PackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Package
         fields = ['id', 'destination', 'image',
-                  'cost', 'duration', 'description','people_limit','travel_sdate','includeplace']
+                  'cost', 'duration', 'description','people_limit','travel_sdate','includeplace','discount']
 
 
 class IncludePlaceSerializer(serializers.ModelSerializer):

@@ -12,6 +12,10 @@ from rest_framework.authtoken.models import Token
 from django.core.mail import send_mail
 from django.core.mail import EmailMessage
 
+
+from rest_framework.authtoken.views import ObtainAuthToken
+
+
 # A Python program to demonstrate working of OrderedDict
 from collections import OrderedDict
 
@@ -34,6 +38,28 @@ def CHECK_IN_PLAN_AND_RESPONSE(user, data, **args):
 
     print('User is in Plan')
 
+
+
+class LoginView(ObtainAuthToken):
+
+
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+
+        # add custom data to response
+        response_data = {
+            'token': token.key,
+            'user_id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'is_admin': user.is_admin,
+            # add additional data fields here as needed
+        }
+        return Response(response_data)
 
 class CreateUserApiView(CreateAPIView):
 
@@ -58,6 +84,21 @@ class CreateUserApiView(CreateAPIView):
             headers=headers)
 
 
+class UserApiView(APIView):
+
+    def get(sel,request):
+        types = request.GET.get('type')
+        user = models.User.objects.get(username=request.user)
+        if types == 'all':
+            users = models.objects.all()
+        else:
+            users = models.objects.get(user=user)
+
+        ser = serializers.UserSerializer(users,many=True)
+
+        return Response(ser.data)
+
+
 class PackageAdmin(APIView):
 
     # destination(str),image(file),cost(str),duration(str)
@@ -72,10 +113,15 @@ class PackageAdmin(APIView):
         duration = request.data['duration']
         people_limit = request.data['people_limit']
         travel_sdate = request.data['travel_sdate']
+        discount = request.data['discount']
 
         package = models.Package.objects.create(
             user=user, destination=destination, image=image, cost=cost, duration=duration, people_limit=people_limit, travel_sdate=travel_sdate)
+    
+        if discount:
+          package.discount = discount
 
+        package.save()
         return Response(status=status.HTTP_201_CREATED)
 
     # return all data
@@ -96,12 +142,16 @@ class PackageAdmin(APIView):
         duration = request.data['duration']
         people_limit = request.data['people_limit']
         travel_sdate = request.data['travel_sdate']
+        discount = request.data['discount']
+
         package = models.Package.objects.get(id=packageid, user=user)
         package.destination = destination
-
-        print(image)
+        if discount:
+          package.discount = discount
+      
         if image:
             package.image = image
+
         package.cost = cost
         package.duration = duration
         package.people_limit = people_limit
@@ -254,8 +304,22 @@ class TravelerView(APIView):
 
 class ClientBooking(APIView):
 
+    
+
     def post(self, request):
         print(request.data)
+
+        rname = request.data['receivername']
+        rphone = request.data['receiverphoneno']
+        sname = request.data['sendername']
+        sphone = request.data['senderphoneno']
+        amount = request.data['amount']
+
+
+        pi =  models.PaymentInfo.objects.create(ReceiverName=rname,ReceiverPhoneno=rphone,
+
+            SenderName=sname,SenderPhoneno=sphone,Amount=amount)
+
         name = request.data['name']
         phoneno = request.data['phoneno']
         email = request.data['email']
@@ -277,6 +341,7 @@ class ClientBooking(APIView):
             idcardno=idcardno,address=address)
 
         booking = models.Booking.objects.create(
+            paymentinfo=pi,
             package=package,
             traveler=traveler,
             cost=package.cost, is_finish=False)
@@ -459,7 +524,7 @@ font-size: larger;
         SENDEMAIL = EmailMessage(subject, html_content, 'traveleragencymm@gmail.com', [
                                  email], headers={'Message-ID': booking.id})
         SENDEMAIL.content_subtype = "html"
-        # SENDEMAIL.send()
+        SENDEMAIL.send()
         # send_mail(package.destination,
         # 'Your Booked This Package',
         # 'traveleragencymm@gmail.com'
