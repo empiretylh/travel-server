@@ -15,6 +15,7 @@ class User(AbstractUser):
         upload_to="img/profile/%y/%mm/%dd", null=True)
     email = models.CharField(max_length=255, null=True)
     is_admin = models.BooleanField(default=True)
+    address = models.TextField(null=True,blank=True)
 
 class Package(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

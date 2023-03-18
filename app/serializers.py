@@ -12,7 +12,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ['name', 'username', 'email', 'phoneno', 'password','is_admin']
+        fields = ['name', 'username', 'email', 'phoneno', 'password','is_admin','address']
         write_only_fields = ('password')
 
     def create(self, validated_data):
@@ -28,7 +28,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ['name','username','email','phoneno','password','is_admin']
+        fields = ['name','username','email','phoneno','password','is_admin','profileimage','address']
 
         
 

@@ -90,11 +90,11 @@ class UserApiView(APIView):
         types = request.GET.get('type')
         user = models.User.objects.get(username=request.user)
         if types == 'all':
-            users = models.objects.all()
+            users = models.User.objects.all()
         else:
-            users = models.objects.get(user=user)
+            users = user
 
-        ser = serializers.UserSerializer(users,many=True)
+        ser = serializers.UserSerializer(users)
 
         return Response(ser.data)
 
