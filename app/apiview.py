@@ -11,8 +11,10 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.core.mail import send_mail
 from django.core.mail import EmailMessage
-
-
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from rest_framework.authtoken.views import ObtainAuthToken
 
 
@@ -21,13 +23,21 @@ from collections import OrderedDict
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import get_user_model
+from django.contrib.auth.views import PasswordChangeView
 
+from django.contrib.auth.forms import PasswordChangeForm
 from django.utils import timezone
+
+
+
+
 
 
 from . import models, serializers
 
 import json
+    
+
 
 
 def CHECK_IN_PLAN_AND_RESPONSE(user, data, **args):
@@ -39,16 +49,138 @@ def CHECK_IN_PLAN_AND_RESPONSE(user, data, **args):
     print('User is in Plan')
 
 
+class UserChangePasswordView(APIView):
 
-class LoginView(ObtainAuthToken):
+    def put(self, request):
+        newpassword = request.data['new_password']
+        print(request.data)
+        if 'old_password' in request.data:
+            user = authenticate(request, username=request.user.username, password=request.data['old_password'])
+        else:
+            user = models.User.objects.get(username=request.user)
+        if user is not None:
+            user.set_password(newpassword)
+            user.save()
+            return Response({'message':'Password Change Success'},status=status.HTTP_201_CREATED)
+        else:
+            return Response({'message': 'Invalid old password'}, status=status.HTTP_401_UNAUTHORIZED)
 
+
+class ForgotPasswordView(APIView):
+    serializer_class = serializers.ForgotPasswordSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        print(request.data)
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = models.User.objects.get(email=serializer.validated_data['email'])
+        token, created = Token.objects.get_or_create(user=user)
+        
+        email = request.data['email']
+
+        subject = 'TMT Agency Account Reset Password'
+
+
+        CI = models.CompanyInformation.objects.last()
+
+        html_content = '''<html>
+<head>
+   
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<style>
+ .reset-password-btn {
+ text-decoration:none;
+  background-color: blue;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.reset-password-btn:hover {
+  background-color: darkblue;
+}
+In this code, the background-color property sets the background color of the button to blue, while the color property sets the text color to white. The border, border-radius, and padding properties are used to style the button, while the `font-size
+
+
+
+
+</style>
+</head>
+<body>
+  <div>
+      <p> <strong>Dear '''+user.name+'''</strong>, <br/><br/>
+        We have received a request to rest the password associated with your account. To proceed with resetting your password, please click on the "Rest Password" button bellow. This will take you to a secure page where you can enter a new password for your account.
+         <br/>
+           <br/>
+        Company : '''+CI.companyname+'''<br/>
+        Call Center : <a href="tel:'''+CI.phoneno+'''">'''+CI.phoneno+'''</a><br/>
+        Email : '''+CI.email+'''<br/>
+        Company Address : '''+CI.companyaddress+'''<br/>
+    </p>  
+    </div>
+<div class='container'>
+<a class='reset-password-btn' href="https://tmtagency.github.io/travel/#/restpassword/'''+str(token)+'''">
+Reset Password
+</a>
+<p>
+If you are unable to clck on the button below, please copy and paste the following URL into your web browser:<br/>
+ https://tmtagency.github.io/travel/#/restpassword/'''+str(token)+'''<br/>
+</p>
+</div>
+</body>
+</html>
+        '''        
+
+
+        SENDEMAIL = EmailMessage(subject, html_content, 'traveleragencymm@gmail.com', [
+                                 email], headers={'Message-ID': user.id})
+        SENDEMAIL.content_subtype = "html"
+        SENDEMAIL.send()
+        # TODO: Send the password reset link to the user's email address
+        # email = ...
+        # send_email(email, uid, token)
+
+        return Response({'detail': 'Password reset link has been sent to your email address.'}, status=status.HTTP_200_OK)
+
+
+class LoginView(APIView):
+
+    permission_classes = [AllowAny]
 
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
+      
+        print(request.data)
+
+        username_or_email = request.data['username']
+        password = request.data['password']
+
+        user = None
+        if '@' in username_or_email:
+            b = models.User.objects.get(email=username_or_email)
+            user = authenticate(username=b.username, password=password)
+        else:
+            user = authenticate(username=username_or_email, password=password)
+
+
+        if not user:
+            return Response({'error': 'Invalid Credentials'},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        # user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
+
+
 
         # add custom data to response
         response_data = {
@@ -78,6 +210,7 @@ class CreateUserApiView(CreateAPIView):
         token = Token.objects.create(user=serializers.instance)
         token_data = {'token': token.key}
 
+
         return Response(
             {**serializers.data, **token_data},
             status=status.HTTP_201_CREATED,
@@ -86,17 +219,41 @@ class CreateUserApiView(CreateAPIView):
 
 class UserApiView(APIView):
 
-    def get(sel,request):
+    permission_classes = [AllowAny]
+
+    def get(self,request):
         types = request.GET.get('type')
         user = models.User.objects.get(username=request.user)
         if types == 'all':
             users = models.User.objects.all()
+            ser = serializers.UserSerializer(users,many=True)
         else:
             users = user
-
-        ser = serializers.UserSerializer(users)
+            ser = serializers.UserSerializer(users)
+        
 
         return Response(ser.data)
+
+    def put(self,request):
+      name = request.data['name']
+      email = request.data['email']
+      phoneno = request.data['phoneno']
+      address = request.data['address']
+      user = models.User.objects.get(username=request.user)
+      user.name = name 
+      user.email = email 
+      user.phoneno = phoneno 
+      user.address = address 
+      user.save()
+
+      return Response(1)
+
+    def delete(self,request):
+        models.User.objects.get(username=request.user)
+        userid = request.GET.get('id')
+        user = models.User.objects.get(id=userid)
+        user.delete()
+        return Response(1)
 
 
 class PackageAdmin(APIView):
@@ -144,7 +301,7 @@ class PackageAdmin(APIView):
         travel_sdate = request.data['travel_sdate']
         discount = request.data['discount']
 
-        package = models.Package.objects.get(id=packageid, user=user)
+        package = models.Package.objects.get(id=packageid)
         package.destination = destination
         if discount:
           package.discount = discount
@@ -175,7 +332,7 @@ class PackageDescriptionAdmin(APIView):
         user = models.User.objects.get(username=request.user)
         packageid = request.data['packageid']
         description = request.data['description']
-        package = models.Package.objects.get(user=user, id=packageid)
+        package = models.Package.objects.get(id=packageid)
         package.description = description
 
         package.save()
@@ -287,7 +444,20 @@ class AdminBookingView(APIView):
             is_finish = request.data['is_finish']
             booking.is_finish = is_finish
 
+        if "cancel" in request.data:
+            cancel = request.data['cancel']
+            booking.is_cancel = cancel
+
         booking.save()
+
+        return Response(status=status.HTTP_201_CREATED)
+
+
+    def delete(self, request):
+        bookingid = request.GET.get('bookingid')
+
+        booking = models.Booking.objects.get(id=bookingid)
+        booking.delete()
 
         return Response(status=status.HTTP_201_CREATED)
 
@@ -296,10 +466,12 @@ class TravelerView(APIView):
 
     def get(self, request):
         travelerid = request.GET.get('travelerid')
-        Traveler = models.Traveler.objects.get(id=travelerid)
-        ser = serializers.TravelerSerializer(Traveler)
+        if int(travelerid) > 0:
+            Traveler = models.Traveler.objects.get(id=travelerid)
+            ser = serializers.TravelerSerializer(Traveler)
 
-        return Response(ser.data)
+            return Response(ser.data)
+        return Response(0)
 
 
 class ClientBooking(APIView):
@@ -308,17 +480,19 @@ class ClientBooking(APIView):
 
     def post(self, request):
         print(request.data)
+        user = models.User.objects.get(username=request.user)
 
         rname = request.data['receivername']
         rphone = request.data['receiverphoneno']
         sname = request.data['sendername']
         sphone = request.data['senderphoneno']
         amount = request.data['amount']
+        operator = request.data['operator']
 
 
         pi =  models.PaymentInfo.objects.create(ReceiverName=rname,ReceiverPhoneno=rphone,
 
-            SenderName=sname,SenderPhoneno=sphone,Amount=amount)
+            SenderName=sname,SenderPhoneno=sphone,Amount=amount,Operator=operator)
 
         name = request.data['name']
         phoneno = request.data['phoneno']
@@ -344,7 +518,9 @@ class ClientBooking(APIView):
             paymentinfo=pi,
             package=package,
             traveler=traveler,
-            cost=package.cost, is_finish=False)
+            cost=package.cost, is_finish=False,
+          user=user
+            )
 
         
         if paidtype == 'prepaid':

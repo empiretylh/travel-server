@@ -16,6 +16,8 @@ urlpatterns = [
     path('auth/login/', apiview.LoginView.as_view(), name='auth_user_login'),
     path('auth/register/', apiview.CreateUserApiView.as_view(),
          name='auth_user_create'),
+    path('auth/changepassword/',apiview.UserChangePasswordView.as_view(),name='changepassword'),
+    path('auth/forgotpassword/',apiview.ForgotPasswordView.as_view(),name='forgotpassword'),
 
     path('api/packageadmin/', apiview.PackageAdmin.as_view(), name='packageadmin'),
     path('api/packagedescription/',

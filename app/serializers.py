@@ -2,6 +2,9 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from . import models
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ValidationError
+
 from django.utils import timezone
 
 
@@ -25,10 +28,28 @@ class CreateUserSerializer(serializers.ModelSerializer):
         return user
 
 
+User = get_user_model()
+
+
+class ForgotPasswordSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, email):
+        try:
+            user = User.objects.get(email=email, is_active=True)
+        except User.DoesNotExist:
+            raise ValidationError('Invalid email address')
+        return user.email
+    
+    class Meta:
+        model = User
+        fields = ['email']
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ['name','username','email','phoneno','password','is_admin','profileimage','address']
+        fields = ['id','name','username','email','phoneno','password','is_admin','profileimage','address']
 
         
 
@@ -70,6 +91,11 @@ class TravelerSerializer(serializers.ModelSerializer):
         model = models.Traveler
         fields = ['id','name','phoneno','email','idcardno','address']
 
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.PaymentInfo
+        fields = ['ReceiverName','ReceiverPhoneno','SenderName','SenderPhoneno','Operator','Amount']
+
 
 class BookingSerializer(serializers.ModelSerializer):
     
@@ -78,11 +104,14 @@ class BookingSerializer(serializers.ModelSerializer):
     travelerid = serializers.CharField(source='traveler.id')
     package = serializers.CharField(source='package.destination')
     departuredt = serializers.CharField(source='package.travel_sdate')
-   
+    paymentinfo = PaymentSerializer(read_only=True)
+
     class Meta:
         model = models.Booking
         fields = ['id', 'travelcode','cost','departuredt',
-                  'paid', 'is_halfpaid', 'is_fullpaid', 'is_finish', 'booking_date','traveler','package','travelerid','idcardno']
+                  'paid', 'is_halfpaid', 'is_fullpaid', 'is_finish','is_cancel',
+                  'paymentinfo','booking_date','traveler','package',
+                  'travelerid','idcardno']
 
 
 class CompanyInfoSerializer(serializers.ModelSerializer):

@@ -13,7 +13,7 @@ class User(AbstractUser):
 
     profileimage = models.ImageField(
         upload_to="img/profile/%y/%mm/%dd", null=True)
-    email = models.CharField(max_length=255, null=True)
+    email = models.EmailField(unique=True,null=True)
     is_admin = models.BooleanField(default=True)
     address = models.TextField(null=True,blank=True)
 
@@ -59,6 +59,7 @@ class PaymentInfo(models.Model):
     ReceiverPhoneno =  models.CharField(max_length=25,null=False)
     SenderName = models.CharField(max_length=255,null=False)
     SenderPhoneno = models.CharField(max_length=255)
+    Operator = models.CharField(max_length=20,default=None)
     Amount = models.CharField(max_length=20)
 
     def __str__(self):
@@ -71,14 +72,16 @@ class Booking(models.Model):
         Package, on_delete=models.CASCADE, related_name='mbooking')
     traveler = models.ForeignKey(
         Traveler, on_delete=models.CASCADE, related_name='booking')
-    paymentinfo =  models.ForeignKey(PaymentInfo,on_delete=models.CASCADE,related_name='paymentinfo',default=None)
+    paymentinfo =  models.ForeignKey(PaymentInfo,on_delete=models.CASCADE,related_name='paymentinfo',default=None,null=True,blank=True)
     cost = models.CharField(max_length=10, null=False)
     paid = models.CharField(max_length=10, null=False)
     is_halfpaid = models.BooleanField(default=False)
     is_fullpaid = models.BooleanField(default=False)
     is_finish = models.BooleanField(default=True)
     booking_date = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(User,on_delete=models.CASCADE,default=None)
+    is_cancel = models.BooleanField(default=False)
+    user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
+
 
     def __str__(self):
         return self.travelcode + ' ' + self.traveler.name
